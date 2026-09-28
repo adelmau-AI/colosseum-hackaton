@@ -1,0 +1,40 @@
+# BitValue × Solana — Architecture notes
+
+## Why Solana for the reward layer
+
+- Transaction cost ~ $0.0001 → viable to reward every validated telemetry packet.
+- Sub-second finality → good UX for drivers seeing rewards appear.
+- Token-2022 gives us native metadata + future extensions without a custom program.
+- Memo program lets us attach a cryptographic proof to every mint in the same atomic transaction.
+
+Ethereum remains the long-term home for the BVC governance / marketplace token (ERC-20).  
+Solana is the high-frequency reward rail.
+
+## Data flow (target)
+
+```
+Vehicle (JT808) 
+    → BitValue modem / listener (port 9001)
+    → Packet validation + quality scoring
+    → mint-telemetry.js  (or future service)
+         ├─ on-chain: MintTo + Memo (dev hash + pkt hash)
+         └─ off-chain: proofs.jsonl (full IMEI + full hash + sig)
+    → Driver wallet (ATA)
+```
+
+## Privacy guarantees
+
+| Data                    | On-chain | Server-only |
+|-------------------------|----------|-------------|
+| Raw IMEI                | ✗        | ✓           |
+| Location / OBD values   | ✗        | ✓           |
+| Device fingerprint      | ✓ (salted hash) | ✓     |
+| Packet hash             | ✓ (truncated) | ✓ (full) |
+| Mint amount + signature | ✓        | ✓           |
+
+## Current status (28 Sep 2026)
+
+- Mint live on Devnet
+- Metadata + logo visible in explorers
+- Manual mint + telemetry-linked mint working
+- Automatic trigger from JT808 listener still pending
