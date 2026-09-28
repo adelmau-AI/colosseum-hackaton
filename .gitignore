@@ -1,0 +1,18 @@
+# Secrets & keys — NEVER commit these
+keys/
+.env
+proofs.jsonl
+
+# Dependencies
+node_modules/
+
+# Logs & runtime
+*.log
+npm-debug.log*
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo

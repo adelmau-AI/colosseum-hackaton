@@ -1,2 +1,127 @@
-# colosseum-hackaton
-This repository contains the core smart contracts/programs and web application built during the hackathon. It includes our frontend integration, Solana program logic, and deployment scripts. All active hackathon code is located under ⁠/src⁠ and ⁠/programs⁠."
+# BitValue Solana — BVC Reward Token (Devnet)
+
+> **BitValue Coin (BVC)** is the reward token for verified vehicle telemetry on the BitValue DePIN network.  
+> This repository contains the scripts used to deploy and operate BVC on **Solana Devnet** for the Colosseum World's Fair 2026 submission.
+
+---
+
+## What this does
+
+1. Creates a **Token-2022** mint with on-chain name, symbol and metadata pointer.
+2. Sets an off-chain metadata URI so explorers and wallets show the BitValue logo.
+3. Mints BVC to driver wallets.
+4. Links every reward to a real JT808 telemetry packet via an on-chain **memo** (device fingerprint + packet hash). Location data never leaves the server.
+
+---
+
+## Live Devnet deployment (Colosseum demo)
+
+| Item              | Value |
+|-------------------|-------|
+| **Mint**          | [`54ptYVZbjWVFR9oY4UjF4DWXAyGRQbxeVFLzgQYHZvCC`](https://explorer.solana.com/address/54ptYVZbjWVFR9oY4UjF4DWXAyGRQbxeVFLzgQYHZvCC?cluster=devnet) |
+| **Name / Symbol** | BitValue Coin / BVC |
+| **Decimals**      | 6 |
+| **Freeze auth**   | None |
+| **Metadata**      | [https://bitvalue-coin.com/token/bvc.json](https://bitvalue-coin.com/token/bvc.json) |
+| **Logo**          | [https://bitvalue-coin.com/bitvalue-icon.png](https://bitvalue-coin.com/bitvalue-icon.png) |
+| **Mint authority**| `2ZVcJHjWx9cZgDy98WeQ4M2PAW1V8uahXiRWkrrC8C3x` |
+
+First verified mint (10 BVC):  
+[https://explorer.solana.com/tx/4ed4sjVjJ9YfLZh2CfNNKHsw24KpzMtQXD5aZ1gbKy3UC6UaNkMBdjG48fV4tfLGXGpdDyzPTyr9iUNZ6i1J9d9U?cluster=devnet](https://explorer.solana.com/tx/4ed4sjVjJ9YfLZh2CfNNKHsw24KpzMtQXD5aZ1gbKy3UC6UaNkMBdjG48fV4tfLGXGpdDyzPTyr9iUNZ6i1J9d9U?cluster=devnet)
+
+---
+
+## Quick start (fresh machine)
+
+```bash
+# 1. Requirements
+node -v   # needs ≥ 18
+
+# 2. Clone & install
+git clone <this-repo>
+cd bitvalue-solana
+npm install
+
+# 3. Configure environment
+cp .env.example .env
+# Edit .env → set DEVICE_SALT=$(openssl rand -hex 32)
+
+# 4. Generate mint authority (only once)
+npm run keygen
+
+# 5. Get SOL on Devnet
+#    Prefer https://faucet.solana.com (public RPC often blocks datacenter IPs)
+npm run airdrop          # may fail from cloud IPs — use faucet instead
+npm run balance
+
+# 6. Create the token
+npm run create-token
+
+# 7. Point metadata URI to your hosted JSON
+npm run set-uri -- https://bitvalue-coin.com/token/bvc.json
+
+# 8. Mint test rewards
+npm run mint -- test 10
+node scripts/mint-telemetry.js <IMEI> <TRAMA_HEX> test 0.1
+```
+
+---
+
+## Scripts overview
+
+| Script | Purpose |
+|--------|---------|
+| `scripts/keygen.js` | Create / report mint-authority keypair |
+| `scripts/airdrop.js` | Request 1 SOL (devnet) |
+| `scripts/balance.js` | Show SOL balance |
+| `scripts/create-token.js` | Deploy Token-2022 mint + metadata |
+| `scripts/set-uri.js` | Update on-chain metadata URI |
+| `scripts/mint.js` | Simple mint to any wallet |
+| `scripts/mint-telemetry.js` | Mint + on-chain memo linked to JT808 packet |
+
+---
+
+## On-chain memo format
+
+```
+bitvalue:v1 dev=<16hex> pkt=<32hex> bytes=<n> ts=<unix>
+```
+
+- `dev`  → first 16 hex chars of `SHA256(DEVICE_SALT + IMEI)`  
+- `pkt`  → first 32 hex chars of `SHA256(raw packet)`  
+- Full IMEI + full packet hash stay only in `proofs.jsonl` on the server.
+
+This gives public verifiability without leaking personal or location data.
+
+---
+
+## Security notes
+
+- `keys/` and `.env` are git-ignored. **Never commit them.**
+- On mainnet the mint authority must be moved to a multisig / hardware wallet before any real value is issued.
+- `DEVICE_SALT` must be unique per environment and stored offline.
+- The current deployment is **Devnet only** — no real economic value.
+
+---
+
+## Architecture context (BitValue)
+
+- Hardware: BitValue by Mox modem (OBD-II + GPS + IMU)
+- Protocol: JT808 (Chinese vehicle terminal standard)
+- Live fleet: 13+ vehicles in demo + signed agreements for 48 + 50 more
+- Backend: NestJS + PM2 (this Solana module lives outside the production process)
+- Token utility: reward drivers for verified, high-quality telemetry that feeds the BitValue data marketplace
+
+---
+
+## Next steps for Colosseum
+
+- [ ] Connect `mint-telemetry.js` to the JT808 listener so every validated packet can trigger a reward automatically
+- [ ] Driver wallet UX (custodial vs non-custodial decision)
+- [ ] Mainnet migration plan + multisig mint authority
+- [ ] Optional: Token-2022 transfer-fee or interest-bearing extensions later
+
+---
+
+Built by **EOLO / Mox Automation Inc** for BitValue.  
+Questions → info@bitvalue-coin.com

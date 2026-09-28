@@ -1,0 +1,32 @@
+{
+  "name": "bitvalue-solana",
+  "version": "1.0.0",
+  "description": "BitValue Coin (BVC) — Reward token for verified vehicle telemetry on Solana. Devnet deployment for Colosseum World's Fair 2026.",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "keygen": "node scripts/keygen.js",
+    "airdrop": "node scripts/airdrop.js",
+    "balance": "node scripts/balance.js",
+    "create-token": "node scripts/create-token.js",
+    "set-uri": "node scripts/set-uri.js",
+    "mint": "node scripts/mint.js",
+    "mint-telemetry": "node scripts/mint-telemetry.js"
+  },
+  "keywords": [
+    "solana",
+    "token-2022",
+    "depin",
+    "telemetry",
+    "bitvalue",
+    "bvc"
+  ],
+  "author": "BitValue / Mox Automation Inc",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@solana/spl-token": "^0.4.9",
+    "@solana/spl-token-metadata": "^0.1.6",
+    "@solana/web3.js": "^1.95.4",
+    "dotenv": "^16.4.5"
+  }
+}
